@@ -1,0 +1,7 @@
+*~
+*.swp
+__*
+
+Debug
+Release
+*vcxproj*.user

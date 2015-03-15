@@ -1,9 +1,10 @@
 *~
 *.swp
-__*
+__pycache__
 
 bin/*
 lib/*
 project/*
 src/*
-templates/**/
+
+!src/*.props
