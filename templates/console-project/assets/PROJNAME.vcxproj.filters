@@ -9,5 +9,13 @@
     <ClCompile Include="src\main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\StdAfx.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\StdAfx.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
