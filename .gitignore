@@ -1,7 +1,9 @@
 *~
 *.swp
+__*
 
 bin/*
-pkg/*
+lib/*
 project/*
 src/*
+templates/**/
