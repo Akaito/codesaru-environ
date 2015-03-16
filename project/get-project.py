@@ -38,7 +38,7 @@ class Repo:
 	def from_github_json(cls, jsn):
 		r = cls()
 		r.name = jsn['name']
-		r.title = r.name[len('codesaru-environ_src_'):]
+		r.title = r.name[len('codesaru-environ_project_'):]
 		r.description = jsn['description']
 		r.clone_url = jsn['clone_url']
 		return r
@@ -53,7 +53,7 @@ def find_repos(jsn):
 		r = Repo.from_github_json(repo_jsn)
 		if r is None:
 			continue
-		if 'codesaru-environ_src_' not in r.name:
+		if 'codesaru-environ_project_' not in r.name:
 			continue
 		repos.append(r)
 	return repos
@@ -69,19 +69,18 @@ def main():
 		repos_jsn = json.loads(response_content.decode())
 		repos.extend(find_repos(repos_jsn))
 
-	# present list of codesaru-environ/src compatible repos
+	# present list of codesaru-environ/project compatible repos
 	for i in range(len(repos)):
 		print(i + 1, '--', repos[i].title)
 		print('   ', repos[i].description)
 
 	user_choice = 0
-	while True:
-		while int(user_choice) < 1 or int(user_choice) > len(repos):
-			user_choice = input('Enter src number to download: ')
-		repo = repos[int(user_choice) - 1]
-		user_choice = 0
+	while int(user_choice) < 1 or int(user_choice) > len(repos):
+		user_choice = input('Enter project number to download: ')
+	user_choice = int(user_choice) - 1
 
-		subprocess.call(['git', 'clone', repo.clone_url, repo.title])
+	repo = repos[user_choice]
+	subprocess.call(['git', 'clone', repo.clone_url, repo.title])
 
 if __name__ == "__main__":
 	prior_dir = os.getcwd()

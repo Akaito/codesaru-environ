@@ -8,5 +8,7 @@ project/*
 src/*
 
 !project/*.props
+!project/get-project.py
+!project/get-project.bat
 !src/get-src.py
 !src/get-src.bat
