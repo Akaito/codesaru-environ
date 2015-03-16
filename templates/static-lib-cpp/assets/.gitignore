@@ -1,6 +1,6 @@
 *~
 *.swp
-__*
+__pycache__
 
 Debug
 Release
