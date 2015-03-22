@@ -1,0 +1,11 @@
+{
+	"sources": [
+		{
+			"type": "githubUser",
+			"data": {
+				"user": "Akaito",
+				"substr": "csaru-environ_src_"
+			}
+		}
+	]
+}
