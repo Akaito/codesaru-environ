@@ -35,7 +35,7 @@ class Repo:
 
 class GithubRepo(Repo):
 	def __init__(self, jsn):
-		self.name = jsn['name'][len:]
+		self.name = jsn['name']
 		self.description = jsn['description']
 		self.clone_url = jsn['clone_url']
 
