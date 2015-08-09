@@ -42,7 +42,7 @@ class Template:
 		return self.target_name
 
 	def validate_target_name(self, n):
-		reg = re.compile('^[a-zA-Z0-9-]+$')
+		reg = re.compile('^[a-zA-Z0-9-_]+$')
 		return reg.match(n) is not None
 
 	def get_target_dir(self):
