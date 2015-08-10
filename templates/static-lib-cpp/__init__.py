@@ -3,7 +3,9 @@ class StaticLibTemplate(Template):
 		return os.path.join('src', self.get_target_name())
 
 	def do_replacements(self, s):
+		import uuid
 		s = s.replace('LIBNAME', self.get_target_name())
+		s = s.replace('CSARU_RANDOM_GUID', str(uuid.uuid4()))
 		return s
 
 	def post_jobs(self):
