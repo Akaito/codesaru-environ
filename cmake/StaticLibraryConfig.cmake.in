@@ -1,0 +1,35 @@
+# Copied and substituted from
+#   <CSaruEnvironRoot>/cmake/BaseLibConfig.cmake.in
+#
+# This is a starter Config.cmake file for your library.  Your library
+#	itself doesn't use it, but it gets install()ed in your library's
+#	output directory by your libarary's CMakeLists.txt when you
+#	"cmake ." there.  This allows other CMake projects to use
+#	find_package() to locate your library (if it's in their
+#	CMAKE_PREFIX_PATH), and from there get the appropriate includes and
+#	libs setup.  See <CSaruEnvironRoot>/cmake/CSaru.cmake to see how
+#	this file is generated (look for the CSaru_Lib() macro), and how
+#	other CSaruEnviron projects find your package via the
+#	CMAKE_PREFIX_PATH.
+#
+# This is only written if you're building a static library and don't
+#	already have a package Config.cmake file, so feel free to modify it
+#	in your lib directory if you need to do fancier stuff.  It won't get
+#	overwritten.
+
+# Other CMake projects getting here via find_package() will add your
+#	library's output's headers' directory to their list of additional
+#	include directories.
+#
+# CMAKE_CURRENT_LIST_DIR holds the path to this file when find_package()
+#	finds it.
+include_directories("${CMAKE_CURRENT_LIST_DIR}/include")
+
+# This is similar to the include_directories above, except for linking
+#	to libraries.  This file provides a variable,
+#	@PROJECT_NAME@_LIBRARIES, to any other CMake project that finds this
+#	one via find_package().  That project can then use
+#	target_link_libraries() with @PROJECT_NAME@_LIBRARIES to make its
+#	linker aware of this project's compiled libraries.
+file(GLOB_RECURSE @PROJECT_NAME@_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/lib/*")
+
