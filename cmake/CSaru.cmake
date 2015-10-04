@@ -47,13 +47,27 @@ endif()
 
 # ---------- CSaru_Lib macro ----------
 #
+# If you just want CSaru to handle everything, call this.
+#	If you want more fine-grained control, but still want CSaru macros to
+#	handle some things, copy-paste all the calls below and change them up
+#	a little (or exclude some).
+#
+macro(CSaru_Lib)
+	CSaru_Lib_Config()
+	CSaru_Lib_InstallPrefix()
+	CSaru_Lib_AddLibrary()
+endmacro()
+
+
+# ---------- CSaru_Lib macro ----------
+#
 # Use this when you're making a library and want:
 #	- A <project>Config.cmake to be created for you (only when missing).
 #	- A <project>ConfigVersion.cmake to be created for you each
 #		"cmake .".
 #	- CMAKE_INSTALL_PREFIX to be setup for you.
 #
-macro(CSaru_Lib)
+macro(CSaru_Lib_Config)
 	#CSaru_Init_Paths(${PROJECT_NAME}) # Is there any reason to do this?
 
 	# If there isn't already a <project>Config.cmake, generate a basic one for libraries.
@@ -76,12 +90,53 @@ macro(CSaru_Lib)
 		VERSION ${PROJECT_VERSION}
 		COMPATIBILITY AnyNewerVersion
 		)
+endmacro()
 
-	# Set the target directory for other modules to find this one in.
-	#	CMake's install() calls will root themselves to
-	#	CMAKE_INSTALL_PREFIX.  Then append anything the user provides in
-	#	their install() calls.
+
+# ---------- CSaru_Lib_InstallPrefix macro ----------
+#
+# Set the target directory for other modules to find this one in.
+#	CMake's install() calls will root themselves to CMAKE_INSTALL_PREFIX,
+#	then append any paths provided in those install() calls.
+#
+macro(CSaru_Lib_InstallPrefix)
 	set(CMAKE_INSTALL_PREFIX "$ENV{CSaruDir}/pkg/${PROJECT_NAME}")
+endmacro()
+
+
+# ---------- CSaru_Lib_AddLibrary macro ----------
+#
+# Wrapper for add_library() that globs its files.
+#	Nice for convenience, but you'll have to manually clean and
+#	regenerate ("cmake .") CMake's output when you add or remove code files.
+#	When globbing, CMake's cache can't tell if files have been added or
+#	removed.
+#
+macro(CSaru_Lib_AddLibrary)
+	# Create the static library.  Tell it *every* file involved!
+	# CMake docs recommend against globbing (ie. src/*cpp) so changes are
+	#	detectable.
+	# If you're *realy* lazy and want to glob anyway,
+	#	just prepare to clean and "cmake ." a lot.
+	#	(Hint: I'm feeling really lazy and want to just let this code run
+	#	everywhere without changing it.)
+	file(GLOB_RECURSE src_files src/*.c*)
+	file(GLOB_RECURSE src_header_files src/*.h*)
+	file(GLOB_RECURSE header_files include/*.h*)
+	# Deliberately not specifying STATIC or SHARED so BUILD_SHARED_LIBS can be
+	#	used to specify one or the other.
+	add_library(${PROJECT_NAME}
+		${src_files}
+		${src_header_files}
+		${header_files}
+		)
+
+	# Tell Visual Studio and other IDEs how to organize the files for the user.
+	#	A fancier thing to do might be to iterate over each file we're adding,
+	#	and add subgroups ("main\\sub", like that) so the organization in the
+	#	IDE is _really_ nice.
+	source_group(src FILES ${src_files} ${src_header_files})
+	source_group(include FILES ${header_files})
 endmacro()
 
 
@@ -109,7 +164,12 @@ endmacro()
 
 # ---------- CSaru_Depends macro ----------
 #
-macro(CSaru_Depends target_project_name)
+macro(CSaru_Depends target_project)
+	# Format the given path (such as "github.com/akaito/csaru-core-cpp")
+	#	in a way that's friendly for package name searches.
+	string(REPLACE "/" "_" target_project_name ${target_project})
+	message(FATAL_ERROR "Checking: [${target_project_name}]")
+
 	# Have CMake search its CMAKE_PREFIX_PATH for a
 	#	<target_project_name>Config.cmake file.  That file should
 	#	automatically include_directories() for us, and also provide a
