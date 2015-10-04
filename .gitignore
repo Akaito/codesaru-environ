@@ -1,12 +1,17 @@
+# Vim
 *~
 *.swp
-__pycache__
+*.vim
 
-bin/*
-lib/*
+bin
+pkg
 project/*
 src/*
 
+# Python
+__pycache__
+
+# Exceptions
 !project/*.props
 !project/get-project.py
 !project/get-project.bat

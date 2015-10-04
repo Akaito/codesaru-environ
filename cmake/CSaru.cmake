@@ -52,14 +52,28 @@ endif()
 #	handle some things, copy-paste all the calls below and change them up
 #	a little (or exclude some).
 #
-macro(CSaru_Lib)
+macro(CSaru_Lib version)
+	CSaru_Lib_Project(${version})
 	CSaru_Lib_Config()
 	CSaru_Lib_InstallPrefix()
 	CSaru_Lib_AddLibrary()
+	CSaru_Lib_Install()
 endmacro()
 
 
-# ---------- CSaru_Lib macro ----------
+macro(CSaru_Lib_Project version)
+	# Automatically use the path after 'src/' as the project name.
+	#	Feel free to delete these next two lines and manually set this instead.
+	#	Just note that CSaru_Depends() expects to be given packages like
+	#	"github.com/akaito/csaru-core-cpp" so it can auto-git them.
+	get_filename_component(leaf_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+	string(REPLACE " " "_" leaf_dir ${leaf_dir})
+
+	project(${leaf_dir} VERSION ${version})
+endmacro()
+
+
+# ---------- CSaru_Lib_Config macro ----------
 #
 # Use this when you're making a library and want:
 #	- A <project>Config.cmake to be created for you (only when missing).
@@ -120,16 +134,26 @@ macro(CSaru_Lib_AddLibrary)
 	#	just prepare to clean and "cmake ." a lot.
 	#	(Hint: I'm feeling really lazy and want to just let this code run
 	#	everywhere without changing it.)
-	file(GLOB_RECURSE src_files src/*.c*)
-	file(GLOB_RECURSE src_header_files src/*.h*)
+	file(GLOB_RECURSE src_files src/*.c* src/*.h*)
 	file(GLOB_RECURSE header_files include/*.h*)
 	# Deliberately not specifying STATIC or SHARED so BUILD_SHARED_LIBS can be
 	#	used to specify one or the other.
 	add_library(${PROJECT_NAME}
 		${src_files}
-		${src_header_files}
 		${header_files}
 		)
+
+	# Add include dir when compiling code; used by this Lists file and all its
+	#	Targets.
+	#include_directories(include)
+
+	# Believe the below was something I used for a while to add the 'include'
+	#	directory to the include path for all 'src' files automatically.
+	#	Ended up liking the manual use of "../include/" more.
+	#target_include_directories(LibA PUBLIC
+		#$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> # Don't need this after-all.
+		#$<INSTALL_INTERFACE:pkg/${PROJECT_NAME}/include>
+		#)
 
 	# Tell Visual Studio and other IDEs how to organize the files for the user.
 	#	A fancier thing to do might be to iterate over each file we're adding,
@@ -137,6 +161,31 @@ macro(CSaru_Lib_AddLibrary)
 	#	IDE is _really_ nice.
 	source_group(src FILES ${src_files} ${src_header_files})
 	source_group(include FILES ${header_files})
+endmacro()
+
+
+# ---------- CSaru_Lib_Install macro ----------
+#
+# Handle install() calls to put include/ headers and CMake Config files into
+#	the proper places for a CSaruEnviron src project.
+#
+macro(CSaru_Lib_Install)
+	file(GLOB_RECURSE exported_header_files include/*.h*)
+	install(FILES ${exported_header_files} DESTINATION include)
+	install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
+		DESTINATION lib
+		INCLUDES DESTINATION include
+		)
+
+	#install(EXPORT ${PROJECT_NAME}-targets DESTINATION .)
+
+	# We may or may not have Config.cmake files in the repo, but CSaru_Lib() will
+	#	make some for us if we don't.
+	install(FILES
+		"${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake"
+		"${PROJECT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+		DESTINATION .
+		)
 endmacro()
 
 
