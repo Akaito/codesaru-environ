@@ -34,15 +34,28 @@ find_package(Git QUIET)
 # (Not available on Windows.)
 #set(DESTDIR "$ENV{CSaruDir}")
 
-# Make install() calls go to the CSaruEnviron dir (they choose between bin and pkg).
-set(CMAKE_INSTALL_PREFIX "$ENV{CSaruDir}")
-
 # Make find_package() calls check the CSaruEnvrion package dir.
 if (CMAKE_PREFIX_PATH)
 	set(CMAKE_PREFIX_PATH "$ENV{CSaruDir}/pkg;${CMAKE_PREFIX_PATH}")
 else()
 	set(CMAKE_PREFIX_PATH "$ENV{CSaruDir}/pkg")
 endif()
+
+
+# ---------- CSaru_ProjectNamify_Path macro ----------
+#
+# Turn an absolute path (such as CMAKE_CURRENT_SOURCE_DIR) into a unique
+#	project name.  Useful for disambiguating things like forked github
+#	projects.
+# Note that CSaru_Depends() expects to be given projects like
+#	"github.com/akaito/csaru-core-cpp" so it can auto-git them.
+#
+macro(CSaru_ProjectNamify_Path absolute_project_src_path outvar)
+	string(REGEX REPLACE "^.*/src/" "" temp "${absolute_project_src_path}")
+	string(REPLACE " " "_" temp ${temp})
+	string(REPLACE "/" "_" temp ${temp})
+	set(${outvar} ${temp})
+endmacro()
 
 
 # ---------- CSaru_Lib macro ----------
@@ -61,15 +74,25 @@ macro(CSaru_Lib version)
 endmacro()
 
 
+# ---------- CSaru_Lib_Project macro ----------
+#
+# Wraps project() call to give effortlessly consistent project naming.
+#	While the names end up pretty long in some cases, it's nice for
+#	disambiguating between forks of one repo in the same CSaruEnviron,
+#	automatically git cloning the right repo when a dependency is missing, etc.
+#
 macro(CSaru_Lib_Project version)
 	# Automatically use the path after 'src/' as the project name.
 	#	Feel free to delete these next two lines and manually set this instead.
 	#	Just note that CSaru_Depends() expects to be given packages like
 	#	"github.com/akaito/csaru-core-cpp" so it can auto-git them.
-	get_filename_component(leaf_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-	string(REPLACE " " "_" leaf_dir ${leaf_dir})
+	#get_filename_component(project_name ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+	set(project_name ${CMAKE_CURRENT_SOURCE_DIR})
+	string(REPLACE " " "_" project_name ${project_name})
+	string(REPLACE "/" "_" project_name ${project_name})
+	CSaru_ProjectNamify_Path(${CMAKE_CURRENT_SOURCE_DIR} project_name)
 
-	project(${leaf_dir} VERSION ${version})
+	project(${project_name} VERSION ${version})
 endmacro()
 
 
@@ -79,7 +102,6 @@ endmacro()
 #	- A <project>Config.cmake to be created for you (only when missing).
 #	- A <project>ConfigVersion.cmake to be created for you each
 #		"cmake .".
-#	- CMAKE_INSTALL_PREFIX to be setup for you.
 #
 macro(CSaru_Lib_Config)
 	#CSaru_Init_Paths(${PROJECT_NAME}) # Is there any reason to do this?
@@ -88,7 +110,7 @@ macro(CSaru_Lib_Config)
 	if (NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Config.cmake)
 		configure_file($ENV{CSaruDir}/cmake/StaticLibraryConfig.cmake.in
 			${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Config.cmake
-			@ONLY # Only replace @VAR@ from .in file, not ${VAR}.
+			@ONLY # Only replace instances of @VAR@ from .in file, not ${VAR}.
 			)
 	endif()
 
@@ -114,7 +136,13 @@ endmacro()
 #	then append any paths provided in those install() calls.
 #
 macro(CSaru_Lib_InstallPrefix)
-	set(CMAKE_INSTALL_PREFIX "$ENV{CSaruDir}/pkg/${PROJECT_NAME}")
+	# The more Go-like way to do this would be to add a "<platform>_<arch>"
+	#	subdirectory under "pkg", but CMake seems to be pretty unaware of
+	#	what's being built (especially when cross compiling), so we'll just
+	#	ignore that until some day when a need for it arises.  Imagine the
+	#	easy way to do that is to just have separate CSaruEnvirons for each
+	#	platform/architecture combination.
+	string(REPLACE "/src/" "/pkg/" CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 endmacro()
 
 
@@ -134,6 +162,7 @@ macro(CSaru_Lib_AddLibrary)
 	#	just prepare to clean and "cmake ." a lot.
 	#	(Hint: I'm feeling really lazy and want to just let this code run
 	#	everywhere without changing it.)
+	# TODO : CHRIS : Use RELATIVE flag (and give abs path to .).
 	file(GLOB_RECURSE src_files src/*.c* src/*.h*)
 	file(GLOB_RECURSE header_files include/*.h*)
 	# Deliberately not specifying STATIC or SHARED so BUILD_SHARED_LIBS can be
@@ -173,7 +202,7 @@ macro(CSaru_Lib_Install)
 	file(GLOB_RECURSE exported_header_files include/*.h*)
 	install(FILES ${exported_header_files} DESTINATION include)
 	install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
-		DESTINATION lib
+		DESTINATION static
 		INCLUDES DESTINATION include
 		)
 
@@ -182,14 +211,43 @@ macro(CSaru_Lib_Install)
 	# We may or may not have Config.cmake files in the repo, but CSaru_Lib() will
 	#	make some for us if we don't.
 	install(FILES
-		"${PROJECT_SOURCE_DIR}/${PROJECT_NAME}Config.cmake"
-		"${PROJECT_SOURCE_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+		"${PROJECT_NAME}Config.cmake"
+		"${PROJECT_NAME}ConfigVersion.cmake"
 		DESTINATION .
 		)
 endmacro()
 
 
 # ---------- CSaru_Init_Paths macro ----------
+#
+#
+macro(CSaru_Bin_Console version)
+	# Automatically use the path after 'src/' as the project name.
+	#	Feel free to delete these next two lines and manually set this instead.
+	#	Just note that CSaru_Depends() expects to be given packages like
+	#	"github.com/akaito/csaru-core-cpp" so it can auto-git them.
+	#get_filename_component(project_name ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+	set(project_name ${CMAKE_CURRENT_SOURCE_DIR})
+	string(REPLACE " " "_" project_name ${project_name})
+	string(REPLACE "/" "_" project_name ${project_name})
+	CSaru_ProjectNamify_Path(${CMAKE_CURRENT_SOURCE_DIR} project_name)
+
+	project(${project_name} VERSION ${version})
+
+
+	string(REPLACE "src" "bin" CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
+
+
+	file(GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c* src/*.h*)
+	add_executable(${PROJECT_NAME}
+		${src_files}
+		)
+endmacro()
+
+
+# ---------- CSaru_Init_Paths macro ----------
+#
+# !!DEPRECATED!!
 #
 # Maybe add project_version, target platform, etc. in the future (so versions don't stomp each other).
 #
@@ -216,8 +274,25 @@ endmacro()
 macro(CSaru_Depends target_project)
 	# Format the given path (such as "github.com/akaito/csaru-core-cpp")
 	#	in a way that's friendly for package name searches.
-	string(REPLACE "/" "_" target_project_name ${target_project})
-	message(FATAL_ERROR "Checking: [${target_project_name}]")
+	#string(REPLACE "/" "_" target_project_name ${target_project})
+
+	# "github.com/<user>/<repo>" calls get special treatment.
+	#string(FIND ${target_project} "github.com/" substr_pos)
+	#message(FATAL_ERROR "EARLIER TEST ${substr_pos}")
+
+
+	#get_filename_component(target_project_name ${target_project} NAME)
+	#string(FIND ${target_project} "/" dir_pos REVERSE)
+	#math(EXPR dir_pos "${dir_pos} + 1")
+	#string(SUBSTRING ${target_project} ${dir_pos}+1 -1 target_project_name)
+	#string(REGEX MATCH "/[a-zA-Z0-9_.-]$" target_project_name ${target_project})
+	#message(FATAL_ERROR "TEMP CHECK: [${dir_pos}] -- ${target_project_name}")
+
+
+	# May come back to building this variable.  Until then, convenience set to
+	#	avoid mass renames.
+	set(target_project_name ${target_project})
+
 
 	# Have CMake search its CMAKE_PREFIX_PATH for a
 	#	<target_project_name>Config.cmake file.  That file should
@@ -225,13 +300,44 @@ macro(CSaru_Depends target_project)
 	#	variable we can use with target_link_libraries().
 	# Don't REQUIRE the file on this call, so we can try to get
 	#	the package first if it's not found.
-	find_package(${target_project_name} QUIET CONFIG)
-	set(target_dir_var ${${target_project_name}_DIR})
-	string(FIND ${target_dir_var} "-NOTFOUND" strtemp)
+	get_filename_component(leaf_dir "${target_project}" NAME)
+	CSaru_ProjectNamify_Path(${target_project} unique_project_name)
+	message(WARNING "PREFIX -- ${CMAKE_PREFIX_PATH}")
+	find_package(${target_project} REQUIRED CONFIG)
+	message(FATAL_ERROR "_DIR -- [${${unique_project_name}_DIR}]")
+	string(FIND ${${unique_project_name}_DIR} "-NOTFOUND" strtemp)
+	# REM : TODO : CHRIS : Strings ending in "-NOTFOUND" evaluate to false.
 	if (NOT DEFINED ${target_project_name}_DIR OR ${strtemp} GREATER 0)
+		# Try including as a github repo-sourced project.
+		CSaru_Depends_Github(target_project)
+
+		# Now that we should have the package, REQUIRE it.
+		find_package(${target_project_name} REQUIRED CONFIG)
+	endif()
+	#message(FATAL_ERROR "TODO : HERE")
+
+	# Check to make sure our target told us about its libraries.
+	target_link_libraries(${PROJECT_NAME} ${${target_project_name}_LIBRARIES})
+	if (NOT DEFINED ${target_project_name}_LIBRARIES)
+		message(FATAL_ERROR "${PROJECT_NAME} can't find ${target_project_name}'s libraries.\n"
+			"${target_project_name} should have provided a list of its library files in a variable called ${target_project_name}_LIBRARIES."
+			"  If it's a CSaruEnviron project, have it call CSaru_Lib() in its CMakeLists.txt file to have it generate files to take care of this for you."
+			"  Don't forget to \"include(\$ENV{CSaruDir}/cmake/CSaru.cmake)\" in its CMakeLists.txt first.\n"
+			)
+	endif()
+endmacro()
+
+
+# ---------- CSaru_Depends_Github macro ----------
+#
+# Check if the target project was given in the form "github.com/<user>/<repo>".
+#	If so, try to "git clone" it automatically for the user if it's missing.
+#
+macro(CSaru_Depends_Github target_project)
 		# Check if we have src, and it just needs to be built to make pkg.
 		if (EXISTS "$ENV{CSaruDir}/src/${target_project_name}")
-			message(FATAL_ERROR "CSaru_Depends() couldn't find \"$ENV{CSaruDir}/pkg/${target_project_name}/${target_project_name}Config.cmake\" CMake project file, but you have the source for this project already.  Please compile/build/install/whatever \"$ENV{CSaruDir}/src/${target_project_name}\" and ensure it outputs at least the aforementioned <ProjectName>Config.cmake file.")
+			CSaru_ProjectNamify_Path("${target_project_name}" local_project_name)
+			message(FATAL_ERROR "CSaru_Depends() found \"src\" for the requested \"${target_project_name}\", but couldn't find a \"${local_project_name}Config.cmake\" CMake project file in \"$ENV{CSaruDir}/pkg/\".  Please \"cmake .\", build, and install \"$ENV{CSaruDir}/src/${target_project_name}\" and ensure it outputs at least the aforementioned <ProjectName>Config.cmake file.")
 		endif()
 
 		# Look for valid github.com repo-style CSaru_Depends
@@ -260,27 +366,15 @@ macro(CSaru_Depends target_project)
 		if (NOT exec_result EQUAL 0)
 			message(FATAL_ERROR "CSaru_Depends() ran \"git clone\" to get \"${target_project_name}\", and git returned an error.  See git's output above for information.  Stopped.")
 		endif()
-
-		# Now that we should have the package, REQUIRE it.
-		find_package(${target_project_name} REQUIRED CONFIG)
-	endif()
-	#message(FATAL_ERROR "TODO : HERE")
-
-	# Check to make sure our target told us about its libraries.
-	target_link_libraries(${PROJECT_NAME} ${${target_project_name}_LIBRARIES})
-	if (NOT DEFINED ${target_project_name}_LIBRARIES)
-		message(FATAL_ERROR "${PROJECT_NAME} can't find ${target_project_name}'s libraries.\n"
-			"${target_project_name} should have provided a list of its library files in a variable called ${target_project_name}_LIBRARIES."
-			"  If it's a CSaruEnviron project, have it call CSaru_Lib() in its CMakeLists.txt file to have it generate files to take care of this for you."
-			"  Don't forget to \"include(\$ENV{CSaruDir}/cmake/CSaru.cmake)\" in its CMakeLists.txt first.\n"
-			)
-	endif()
 endmacro()
 
 
 # ---------- CSaru_Depends2 macro ----------
-
+#
+# !!DEPRECATED!!
+#
 # WIP, Not currently functional!  (May never be!)
+#
 macro(CSaru_Depends2 project_name)
 	message(FATAL_ERROR "CSaru_Depends2() is not yet useful!  Use CSaru_Depends() instead!")
 	CSaru_Init_Paths("${PROJECT_NAME}")

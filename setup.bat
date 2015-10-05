@@ -1,4 +1,4 @@
 @ECHO OFF
-md bin
-md lib
 md src
+md pkg
+md bin
