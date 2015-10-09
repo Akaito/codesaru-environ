@@ -303,8 +303,12 @@ macro(CSaru_Depends target_project)
 	get_filename_component(leaf_dir "${target_project}" NAME)
 	CSaru_ProjectNamify_Path(${target_project} unique_project_name)
 	message(WARNING "PREFIX -- ${CMAKE_PREFIX_PATH}")
-	find_package(${target_project} REQUIRED CONFIG)
-	message(FATAL_ERROR "_DIR -- [${${unique_project_name}_DIR}]")
+	find_package(${target_project} CONFIG QUIET)
+
+	# Rem: "${${target_project}_DIR}" has the "-NOTFOUND"-suffixed string after the above call finds nothing.
+	# Rem: And dont' forget `cmake --build . --target install`.
+	message(FATAL_ERROR "_DIR -- [${${unique_project_name}_DIR}] -- ${unique_project_name} -- ${${target_project}_DIR}")
+
 	string(FIND ${${unique_project_name}_DIR} "-NOTFOUND" strtemp)
 	# REM : TODO : CHRIS : Strings ending in "-NOTFOUND" evaluate to false.
 	if (NOT DEFINED ${target_project_name}_DIR OR ${strtemp} GREATER 0)
