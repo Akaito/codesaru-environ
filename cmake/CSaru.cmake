@@ -46,7 +46,7 @@ endif()
 #
 # Turn an absolute path (such as CMAKE_CURRENT_SOURCE_DIR) into a unique
 #	project name.  Useful for disambiguating things like forked github
-#	projects.
+#	projects when searching for a <Project>Config.cmake file.
 # Note that CSaru_Depends() expects to be given projects like
 #	"github.com/akaito/csaru-core-cpp" so it can auto-git them.
 #
@@ -272,8 +272,6 @@ endmacro()
 # ---------- CSaru_Depends macro ----------
 #
 macro(CSaru_Depends target_project)
-	set("${target_project}_DIR" "${CMAKE_PREFIX_PATH}/${target_project}")
-
 	# Have CMake search its CMAKE_PREFIX_PATH for a
 	#	<target_project>Config.cmake file.  That file should
 	#	automatically include_directories() for us, and also provide a
@@ -281,7 +279,7 @@ macro(CSaru_Depends target_project)
 	# Don't REQUIRE the file on this call, so we can try to get
 	#	the package first if it's not found.
 	CSaru_ProjectNamify_Path(${target_project} unique_project_name)
-	find_package(${target_project} QUIET
+	find_package("${target_project}" QUIET
 		CONFIG
 		NAMES ${unique_project_name}
 		)
@@ -293,24 +291,25 @@ macro(CSaru_Depends target_project)
 
 	# Rem: "${${target_project}_DIR}" has the "-NOTFOUND"-suffixed string after the above call finds nothing.
 	# Rem: And dont' forget `cmake --build . --target install`.
-	message(FATAL_ERROR "_DIR -- [${${unique_project_name}_DIR}] -- ${unique_project_name} -- ${${target_project}_DIR}")
+	#message(FATAL_ERROR "_DIR -- [${${unique_project_name}_DIR}] -- ${unique_project_name} -- ${${target_project}_DIR} -- (${target_project})")
 
-	string(FIND ${${unique_project_name}_DIR} "-NOTFOUND" strtemp)
-	# REM : TODO : CHRIS : Strings ending in "-NOTFOUND" evaluate to false.
-	if (NOT DEFINED ${target_project_name}_DIR OR ${strtemp} GREATER 0)
+	# Strings ending in "-NOTFOUND" evaluate to false.
+	#	So ${target_project}_DIR will resolve false if find_package() couldn't find it,
+	#	since its value will then be "${target_project}-NOTFOUND".
+	if (NOT ${target_project}_DIR)
+		message(FATAL_ERROR "TODO : HERE -- ${${target_project}_DIR}")
 		# Try including as a github repo-sourced project.
 		CSaru_Depends_Github(target_project)
 
 		# Now that we should have the package, REQUIRE it.
 		find_package(${target_project_name} REQUIRED CONFIG)
 	endif()
-	#message(FATAL_ERROR "TODO : HERE")
 
 	# Check to make sure our target told us about its libraries.
-	target_link_libraries(${PROJECT_NAME} ${${target_project_name}_LIBRARIES})
-	if (NOT DEFINED ${target_project_name}_LIBRARIES)
-		message(FATAL_ERROR "${PROJECT_NAME} can't find ${target_project_name}'s libraries.\n"
-			"${target_project_name} should have provided a list of its library files in a variable called ${target_project_name}_LIBRARIES."
+	target_link_libraries(${PROJECT_NAME} ${${unique_project_name}_LIBRARIES})
+	if (NOT DEFINED ${unique_project_name}_LIBRARIES)
+		message(FATAL_ERROR "${PROJECT_NAME} can't find \"${target_project}\"'s libraries.\n"
+			"\"${target_project}\" should have provided a list of its library files in a variable called ${unique_project_name}_LIBRARIES."
 			"  If it's a CSaruEnviron project, have it call CSaru_Lib() in its CMakeLists.txt file to have it generate files to take care of this for you."
 			"  Don't forget to \"include(\$ENV{CSaruDir}/cmake/CSaru.cmake)\" in its CMakeLists.txt first.\n"
 			)
