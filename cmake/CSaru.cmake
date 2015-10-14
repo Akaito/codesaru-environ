@@ -272,38 +272,24 @@ endmacro()
 # ---------- CSaru_Depends macro ----------
 #
 macro(CSaru_Depends target_project)
-	# Format the given path (such as "github.com/akaito/csaru-core-cpp")
-	#	in a way that's friendly for package name searches.
-	#string(REPLACE "/" "_" target_project_name ${target_project})
-
-	# "github.com/<user>/<repo>" calls get special treatment.
-	#string(FIND ${target_project} "github.com/" substr_pos)
-	#message(FATAL_ERROR "EARLIER TEST ${substr_pos}")
-
-
-	#get_filename_component(target_project_name ${target_project} NAME)
-	#string(FIND ${target_project} "/" dir_pos REVERSE)
-	#math(EXPR dir_pos "${dir_pos} + 1")
-	#string(SUBSTRING ${target_project} ${dir_pos}+1 -1 target_project_name)
-	#string(REGEX MATCH "/[a-zA-Z0-9_.-]$" target_project_name ${target_project})
-	#message(FATAL_ERROR "TEMP CHECK: [${dir_pos}] -- ${target_project_name}")
-
-
-	# May come back to building this variable.  Until then, convenience set to
-	#	avoid mass renames.
-	set(target_project_name ${target_project})
-
+	set("${target_project}_DIR" "${CMAKE_PREFIX_PATH}/${target_project}")
 
 	# Have CMake search its CMAKE_PREFIX_PATH for a
-	#	<target_project_name>Config.cmake file.  That file should
+	#	<target_project>Config.cmake file.  That file should
 	#	automatically include_directories() for us, and also provide a
 	#	variable we can use with target_link_libraries().
 	# Don't REQUIRE the file on this call, so we can try to get
 	#	the package first if it's not found.
-	get_filename_component(leaf_dir "${target_project}" NAME)
 	CSaru_ProjectNamify_Path(${target_project} unique_project_name)
-	message(WARNING "PREFIX -- ${CMAKE_PREFIX_PATH}")
-	find_package(${target_project} CONFIG QUIET)
+	find_package(${target_project} QUIET
+		CONFIG
+		NAMES ${unique_project_name}
+		)
+
+	# NOTE: May be able to be rid of the unique_project_name enirely.
+	#		Avoid including all CMAKE_PREFIX_PATH stuff, and directly cat target_project onto it instead.
+	#		Problem: Potential for ambiguous <Proj>Config.cmake files when things try to use them
+	#		without doing it in the CSaru_Depends() way.
 
 	# Rem: "${${target_project}_DIR}" has the "-NOTFOUND"-suffixed string after the above call finds nothing.
 	# Rem: And dont' forget `cmake --build . --target install`.
