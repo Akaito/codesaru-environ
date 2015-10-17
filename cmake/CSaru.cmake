@@ -163,8 +163,8 @@ macro(CSaru_Lib_AddLibrary)
 	#	(Hint: I'm feeling really lazy and want to just let this code run
 	#	everywhere without changing it.)
 	# TODO : CHRIS : Use RELATIVE flag (and give abs path to .).
-	file(GLOB_RECURSE src_files src/*.c* src/*.h*)
-	file(GLOB_RECURSE header_files include/*.h*)
+	file(GLOB_RECURSE src_files src/*.cpp src/*.cxx src/*.c src/*.h src/*.hpp src/*.hxx)
+	file(GLOB_RECURSE header_files include/*.h include/*.hpp include/*.hxx)
 	# Deliberately not specifying STATIC or SHARED so BUILD_SHARED_LIBS can be
 	#	used to specify one or the other.
 	add_library(${PROJECT_NAME}
@@ -175,6 +175,7 @@ macro(CSaru_Lib_AddLibrary)
 	# Add include dir when compiling code; used by this Lists file and all its
 	#	Targets.
 	#include_directories(include)
+	#include_directories("$ENV{CSaruDir}/pkg")
 
 	# Believe the below was something I used for a while to add the 'include'
 	#	directory to the include path for all 'src' files automatically.
@@ -199,7 +200,7 @@ endmacro()
 #	the proper places for a CSaruEnviron src project.
 #
 macro(CSaru_Lib_Install)
-	file(GLOB_RECURSE exported_header_files include/*.h*)
+	file(GLOB_RECURSE exported_header_files include/*.h include/*.hpp include/*.hxx)
 	install(FILES ${exported_header_files} DESTINATION include)
 	install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
 		DESTINATION static
@@ -238,7 +239,7 @@ macro(CSaru_Bin_Console version)
 	string(REPLACE "src" "bin" CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
 
-	file(GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c* src/*.h*)
+	file(GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c src/*.cpp src/*.cxx src/*.h src/*.hpp src/*.hxx)
 	add_executable(${PROJECT_NAME}
 		${src_files}
 		)
@@ -272,6 +273,11 @@ endmacro()
 # ---------- CSaru_Depends macro ----------
 #
 macro(CSaru_Depends target_project)
+	# Add the expected CSaruEnv pkg directory for the target to our
+	#	search path, but store the old one to restore it after.
+	set(cmake_prefix_path_csaru_bak "${CMAKE_PREFIX_PATH}")
+	set(CMAKE_PREFIX_PATH "$ENV{CSaruDir}/pkg/${target_project}")
+
 	# Have CMake search its CMAKE_PREFIX_PATH for a
 	#	<target_project>Config.cmake file.  That file should
 	#	automatically include_directories() for us, and also provide a
@@ -291,12 +297,13 @@ macro(CSaru_Depends target_project)
 
 	# Rem: "${${target_project}_DIR}" has the "-NOTFOUND"-suffixed string after the above call finds nothing.
 	# Rem: And dont' forget `cmake --build . --target install`.
-	#message(FATAL_ERROR "_DIR -- [${${unique_project_name}_DIR}] -- ${unique_project_name} -- ${${target_project}_DIR} -- (${target_project})")
+	#message(FATAL_ERROR "_DIR -- [${${target_project}_DIR}] -- ${unique_project_name} -- (${target_project})\nCMAKE_PREFIX: ${CMAKE_PREFIX_PATH}")
 
 	# Strings ending in "-NOTFOUND" evaluate to false.
 	#	So ${target_project}_DIR will resolve false if find_package() couldn't find it,
 	#	since its value will then be "${target_project}-NOTFOUND".
 	if (NOT ${target_project}_DIR)
+		set(CMAKE_PREFIX_PATH "${cmake_prefix_path_csaru_bak}")
 		message(FATAL_ERROR "TODO : HERE -- ${${target_project}_DIR}")
 		# Try including as a github repo-sourced project.
 		CSaru_Depends_Github(target_project)
@@ -304,6 +311,9 @@ macro(CSaru_Depends target_project)
 		# Now that we should have the package, REQUIRE it.
 		find_package(${target_project_name} REQUIRED CONFIG)
 	endif()
+
+	# Restore CMAKE_PREFIX_PATH to what it was before the Depends call.
+	set(CMAKE_PREFIX_PATH "${cmake_prefix_path_csaru_bak}")
 
 	# Check to make sure our target told us about its libraries.
 	target_link_libraries(${PROJECT_NAME} ${${unique_project_name}_LIBRARIES})
