@@ -22,8 +22,14 @@
 #	include directories.
 #
 # CMAKE_CURRENT_LIST_DIR holds the path to this file when find_package()
-#	finds it.
-include_directories("${CMAKE_CURRENT_LIST_DIR}/include")
+#	finds it.  Go up to the main dir of this pkg, then up one more,
+#	to allow easy, disambiguous includes like "csaru-json-cpp/Parser.h".
+#	The more Go-like way would be "github.com/akaito/csaru-json-cpp/Parser.h".
+#	Since we're not doing anything smart with those extra characters yet
+#	(like Go's auto-detection of dependencies), save all that extra typing for
+#	the future when we *might* do something like that, instead of paying for
+#	it now.
+include_directories("${CMAKE_CURRENT_LIST_DIR}/../..")
 
 # This is similar to the include_directories above, except for linking
 #	to libraries.  This file provides a variable,
@@ -31,5 +37,5 @@ include_directories("${CMAKE_CURRENT_LIST_DIR}/include")
 #	one via find_package().  That project can then use
 #	target_link_libraries() with @PROJECT_NAME@_LIBRARIES to make its
 #	linker aware of this project's compiled libraries.
-file(GLOB_RECURSE @PROJECT_NAME@_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/static/*.lib")
+file(GLOB_RECURSE @PROJECT_NAME@_LIBRARIES "${CMAKE_CURRENT_LIST_DIR}/../static/*.lib")
 

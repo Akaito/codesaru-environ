@@ -201,10 +201,10 @@ endmacro()
 #
 macro(CSaru_Lib_Install)
 	file(GLOB_RECURSE exported_header_files include/*.h include/*.hpp include/*.hxx)
-	install(FILES ${exported_header_files} DESTINATION include)
+	install(FILES ${exported_header_files} DESTINATION .)
 	install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
 		DESTINATION static
-		INCLUDES DESTINATION include
+		INCLUDES DESTINATION .
 		)
 
 	#install(EXPORT ${PROJECT_NAME}-targets DESTINATION .)
@@ -214,7 +214,7 @@ macro(CSaru_Lib_Install)
 	install(FILES
 		"${PROJECT_NAME}Config.cmake"
 		"${PROJECT_NAME}ConfigVersion.cmake"
-		DESTINATION .
+		DESTINATION cmake
 		)
 endmacro()
 
@@ -278,6 +278,11 @@ macro(CSaru_Depends target_project)
 	set(cmake_prefix_path_csaru_bak "${CMAKE_PREFIX_PATH}")
 	set(CMAKE_PREFIX_PATH "$ENV{CSaruDir}/pkg/${target_project}")
 
+	# testing
+	#build_command(b)
+	#message(FATAL_ERROR "TEST -- ${b}")
+
+
 	# Have CMake search its CMAKE_PREFIX_PATH for a
 	#	<target_project>Config.cmake file.  That file should
 	#	automatically include_directories() for us, and also provide a
@@ -336,7 +341,7 @@ macro(CSaru_Depends_Github target_project)
 		# Check if we have src, and it just needs to be built to make pkg.
 		if (EXISTS "$ENV{CSaruDir}/src/${target_project_name}")
 			CSaru_ProjectNamify_Path("${target_project_name}" local_project_name)
-			message(FATAL_ERROR "CSaru_Depends() found \"src\" for the requested \"${target_project_name}\", but couldn't find a \"${local_project_name}Config.cmake\" CMake project file in \"$ENV{CSaruDir}/pkg/\".  Please \"cmake .\", build, and install \"$ENV{CSaruDir}/src/${target_project_name}\" and ensure it outputs at least the aforementioned <ProjectName>Config.cmake file.")
+			message(FATAL_ERROR "CSaru_Depends() found \"src\" for the requested \"${target_project_name}\", but couldn't find a \"${local_project_name}Config.cmake\" CMake project file in \"$ENV{CSaruDir}/pkg/\".  Please \"cmake .\" and \"cmake --build . --target install\" \"$ENV{CSaruDir}/src/${target_project_name}\" and ensure it outputs at least the aforementioned <ProjectName>Config.cmake file.")
 		endif()
 
 		# Look for valid github.com repo-style CSaru_Depends
