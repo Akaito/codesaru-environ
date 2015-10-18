@@ -219,7 +219,7 @@ macro(CSaru_Lib_Install)
 endmacro()
 
 
-# ---------- CSaru_Init_Paths macro ----------
+# ---------- CSaru_Bin_Console macro ----------
 #
 #
 macro(CSaru_Bin_Console version)
@@ -238,8 +238,14 @@ macro(CSaru_Bin_Console version)
 
 	string(REPLACE "src" "bin" CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
+	# Put executables into the CSaruEnviron bin directory.
+	#	On DLL platforms (Windows), also put shared libraries (.dll) here.
+	#	On other platforms, shared libraries (.so) go in the LIBRARY directory instead.
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{CSaruDir}/bin/${project_name}")
+
 
 	file(GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c src/*.cpp src/*.cxx src/*.h src/*.hpp src/*.hxx)
+	# Recall that PROJECT_NAME is set by the project() call above.
 	add_executable(${PROJECT_NAME}
 		${src_files}
 		)
