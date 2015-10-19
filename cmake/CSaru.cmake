@@ -52,9 +52,9 @@ endif()
 #
 macro(CSaru_ProjectNamify_Path absolute_project_src_path outvar)
 	string(REGEX REPLACE "^.*/src/" "" temp "${absolute_project_src_path}")
-	string(REPLACE " " "_" temp ${temp})
-	string(REPLACE "/" "_" temp ${temp})
-	set(${outvar} ${temp})
+	string(REPLACE " " "_" temp "${temp}")
+	string(REPLACE "/" "_" temp "${temp}")
+	set(${outvar} "${temp}")
 endmacro()
 
 
@@ -314,13 +314,16 @@ macro(CSaru_Depends target_project)
 	#	So ${target_project}_DIR will resolve false if find_package() couldn't find it,
 	#	since its value will then be "${target_project}-NOTFOUND".
 	if (NOT ${target_project}_DIR)
-		set(CMAKE_PREFIX_PATH "${cmake_prefix_path_csaru_bak}")
-		message(FATAL_ERROR "TODO : HERE -- ${${target_project}_DIR}")
+		#set(CMAKE_PREFIX_PATH "${cmake_prefix_path_csaru_bak}")
+		#message(FATAL_ERROR "TODO : HERE -- ${${target_project}_DIR}")
 		# Try including as a github repo-sourced project.
-		CSaru_Depends_Github(target_project)
+		CSaru_Depends_Github("${target_project}")
 
 		# Now that we should have the package, REQUIRE it.
-		find_package(${target_project_name} REQUIRED CONFIG)
+		find_package(${target_project_name} REQUIRED
+			CONFIG
+			NAMES ${unique_project_name}
+			)
 	endif()
 
 	# Restore CMAKE_PREFIX_PATH to what it was before the Depends call.
@@ -344,38 +347,49 @@ endmacro()
 #	If so, try to "git clone" it automatically for the user if it's missing.
 #
 macro(CSaru_Depends_Github target_project)
-		# Check if we have src, and it just needs to be built to make pkg.
-		if (EXISTS "$ENV{CSaruDir}/src/${target_project_name}")
-			CSaru_ProjectNamify_Path("${target_project_name}" local_project_name)
-			message(FATAL_ERROR "CSaru_Depends() found \"src\" for the requested \"${target_project_name}\", but couldn't find a \"${local_project_name}Config.cmake\" CMake project file in \"$ENV{CSaruDir}/pkg/\".  Please \"cmake .\" and \"cmake --build . --target install\" \"$ENV{CSaruDir}/src/${target_project_name}\" and ensure it outputs at least the aforementioned <ProjectName>Config.cmake file.")
-		endif()
+	# Check if we have src, and it just needs to be built to make pkg.
+	if (EXISTS "$ENV{CSaruDir}/src/${target_project}")
+		CSaru_ProjectNamify_Path("${target_project}" local_project_name)
+		message(FATAL_ERROR "src exists -- ${local_project_name}")
+		message(FATAL_ERROR "CSaru_Depends() found \"src\" for the requested \"${target_project}\", but couldn't find a \"${local_project_name}Config.cmake\" CMake project file in \"$ENV{CSaruDir}/pkg/\".  Please \"cmake .\" and \"cmake --build . --target install\" \"$ENV{CSaruDir}/src/${target_project}\" and ensure it outputs at least the aforementioned <ProjectName>Config.cmake file.")
+	endif()
 
-		# Look for valid github.com repo-style CSaru_Depends
-		string(REGEX REPLACE
-			"^github.com/([_a-zA-Z0-9-]*)/([_a-zA-Z0-9-]*)$"
-			"\\1;\\2"
-			regex_matches
-			${target_project_name}
-			)
-		list(LENGTH regex_matches regex_match_count)
-		if (NOT regex_match_count EQUAL 2)
-			message(FATAL_ERROR "CSaru_Depends() couldn't find project/package \"${target_project_name}\", and not a \"github.com/<user>/<repo>\"-formatted CSaru_Depends call.  Can't proceed.")
-		endif()
-		list(GET regex_matches 0 github_user_name)
-		list(GET regex_matches 1 github_repo_name)
-		#message(FATAL_ERROR "[${github_user_name}] [${github_repo_name}]")
-		if (NOT GIT_FOUND)
-			message(FATAL_ERROR "CSaru_Depends() couldn't find project/package \"${target_project_name}\", and your Git executable wasn't found.  Please install git first to support CSaru_Depends() auto-downloading.  In this case, \"https://github.com/${github_user_name}/${github_repo_name}.git\" would have been put in place for you.  git-scm.com and github.com are good places from which to get and learn git.")
-		endif()
+	# Check if the arg given to CSaru_Depends is a valid github.com repo-style path/url.
+	#	(And extract the username and repo name at the same time, if they're there.)
+	string(REGEX REPLACE
+		"^github.com/([_a-zA-Z0-9-]*)/([_a-zA-Z0-9-]*)$"
+		"\\1;\\2"
+		regex_matches
+		${target_project}
+		)
+	list(LENGTH regex_matches regex_match_count)
+	if (NOT regex_match_count EQUAL 2)
+		message(FATAL_ERROR "CSaru_Depends() couldn't find project/package \"${target_project}\", and not a \"github.com/<user>/<repo>\"-formatted CSaru_Depends call.  Can't proceed.")
+	endif()
+	list(GET regex_matches 0 github_user_name)
+	list(GET regex_matches 1 github_repo_name)
+	#message(FATAL_ERROR "[${github_user_name}] [${github_repo_name}]")
+	if (NOT GIT_FOUND)
+		message(FATAL_ERROR "CSaru_Depends() couldn't find project/package \"${target_project}\", and your Git executable wasn't found.  Please install git first to support CSaru_Depends() auto-downloading.  In this case, \"https://github.com/${github_user_name}/${github_repo_name}.git\" would have been put in place for you.  git-scm.com and github.com are good places from which to get and learn git.")
+	endif()
 
-		# Do the git clone.
-		execute_process(
-			COMMAND ${GIT_EXECUTABLE} clone "https://github.com/${github_user_name}/${github_repo_name}.git" "$ENV{CSaruDir}/src/github.com/${github_user_name}/${github_repo_name}"
-			RESULT_VARIABLE exec_result
-			)
-		if (NOT exec_result EQUAL 0)
-			message(FATAL_ERROR "CSaru_Depends() ran \"git clone\" to get \"${target_project_name}\", and git returned an error.  See git's output above for information.  Stopped.")
-		endif()
+	# Do the git clone.
+	set(clone_dir "$ENV{CSaruDir}/src/github.com/${github_user_name}/${github_repo_name}")
+	execute_process(
+		COMMAND ${GIT_EXECUTABLE} clone "https://github.com/${github_user_name}/${github_repo_name}.git" "${clone_dir}"
+		RESULT_VARIABLE exec_result
+		)
+	if (NOT exec_result EQUAL 0)
+		message(FATAL_ERROR "CSaru_Depends() ran \"git clone\" to get \"${target_project}\", and git returned an error.  See git's output above for information.  Stopped.")
+	endif()
+
+	# Try to install so the find_package call after this macro might succeed.
+	execute_process(COMMAND "${CMAKE_COMMAND}" "--build \"${clone_dir}\" --target install"
+		RESULT_VARIABLE build_result
+		)
+	if (NOT build_result)
+		message(FATAL_ERROR "Failed to cmake --build git-cloned project via CSaru_Depends().  \"${target_project}\".")
+	endif()
 endmacro()
 
 
