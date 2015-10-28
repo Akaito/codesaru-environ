@@ -310,6 +310,22 @@ macro(CSaru_Depends target_project)
 	# Rem: And dont' forget `cmake --build . --target install`.
 	#message(FATAL_ERROR "_DIR -- [${${target_project}_DIR}] -- ${unique_project_name} -- (${target_project})\nCMAKE_PREFIX: ${CMAKE_PREFIX_PATH}")
 
+	###
+	# Try Install
+	set(target_src_dir "$ENV{CSaruDir}/src/${target_project}")
+	if (EXISTS "${target_src_dir}")
+		message(STATUS "Missing pkg for dependency, but src exists.  Attempting to cmake-build install target.")
+		# Try to install so the find_package call after this macro might succeed.
+		#message(FATAL_ERROR "cmd test -- [${CMAKE_COMMAND}]" "--build \"${target_src_dir}\" --target install")
+		execute_process(COMMAND ${CMAKE_COMMAND} " --build \"${target_src_dir}\" --target install"
+			RESULT_VARIABLE build_result
+			)
+		if (NOT build_result)
+			message(FATAL_ERROR "Failed to cmake --build git-cloned project via CSaru_Depends().  \"${target_project}\".")
+		endif()
+	endif()
+	###
+
 	# Strings ending in "-NOTFOUND" evaluate to false.
 	#	So ${target_project}_DIR will resolve false if find_package() couldn't find it,
 	#	since its value will then be "${target_project}-NOTFOUND".
@@ -381,14 +397,6 @@ macro(CSaru_Depends_Github target_project)
 		)
 	if (NOT exec_result EQUAL 0)
 		message(FATAL_ERROR "CSaru_Depends() ran \"git clone\" to get \"${target_project}\", and git returned an error.  See git's output above for information.  Stopped.")
-	endif()
-
-	# Try to install so the find_package call after this macro might succeed.
-	execute_process(COMMAND "${CMAKE_COMMAND}" "--build \"${clone_dir}\" --target install"
-		RESULT_VARIABLE build_result
-		)
-	if (NOT build_result)
-		message(FATAL_ERROR "Failed to cmake --build git-cloned project via CSaru_Depends().  \"${target_project}\".")
 	endif()
 endmacro()
 
