@@ -39,6 +39,9 @@ Target Structure
 
 Env
 	bin
+		csaru-core-cpp.exe   ==> csaru-core-cpp.2.1.exe
+		csaru-core-cpp.2.exe ==> csaru-core-cpp.2.1.exe
+		csaru-core-cpp.2.1.exe
 	pkg
 		csaru-core-cpp   ==> csaru-core-cpp.2.1
 		csaru-core-cpp.2 ==> csaru-core-cpp.2.1
@@ -51,4 +54,8 @@ Env
 				csaru-core-cpp.lib
 			*.h
 	src
+		github.com
+			akaito
+				csaru-core-cpp
+				csaru-container-cpp
 
