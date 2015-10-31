@@ -86,11 +86,17 @@ macro(CSaru_Lib_Project version)
 	#	Feel free to delete these next two lines and manually set this instead.
 	#	Just note that CSaru_Depends() expects to be given packages like
 	#	"github.com/akaito/csaru-core-cpp" so it can auto-git them.
-	#get_filename_component(project_name ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-	set(project_name ${CMAKE_CURRENT_SOURCE_DIR})
-	string(REPLACE " " "_" project_name ${project_name})
-	string(REPLACE "/" "_" project_name ${project_name})
-	CSaru_ProjectNamify_Path(${CMAKE_CURRENT_SOURCE_DIR} project_name)
+	#set(project_name ${CMAKE_CURRENT_SOURCE_DIR})
+	#string(REPLACE " " "_" project_name ${project_name})
+	#string(REPLACE "/" "_" project_name ${project_name})
+	#CSaru_ProjectNamify_Path(${CMAKE_CURRENT_SOURCE_DIR} project_name)
+
+	# Never mind!  Doing things the easy way for now.  This new,  simpler
+	#	target is what may someday instead be a link to the latest-built,
+	#	highest-versioned instance of a lib.
+	# (Note CMake has no intention of supporting symlink creation on Windows
+	#	at time of writing.  We'll have to mklink ourselves.)
+	get_filename_component(project_name ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 	project(${project_name} VERSION ${version})
 endmacro()
@@ -142,13 +148,22 @@ macro(CSaru_Lib_InstallPrefix)
 	#	ignore that until some day when a need for it arises.  Imagine the
 	#	easy way to do that is to just have separate CSaruEnvirons for each
 	#	platform/architecture combination.
-	string(REPLACE "/src/" "/pkg/" CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
+	#string(REPLACE "/src/" "/pkg/" CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
+
+	set(CMAKE_INSTALL_PREFIX "$ENV{CSaruDir}/pkg/${PROJECT_NAME}")
+
+	# Some day in the future, install like this instead:
+	#	Actual path: pkg/github.com/username/reponame/v3.2
+	#	Link by latest-built: pkg/reponame.3.2 ==> (actual)
+	#	Link by latest-built,highest-minor: pkg/reponame.3 ==> (actual)
+	#	Link by latest-built,highest-major: pkg/reponame ==> (actual)
 endmacro()
 
 
 # ---------- CSaru_Lib_AddLibrary macro ----------
 #
 # Wrapper for add_library() that globs its files.
+#	Library projects use this to define themselves in their solution.
 #	Nice for convenience, but you'll have to manually clean and
 #	regenerate ("cmake .") CMake's output when you add or remove code files.
 #	When globbing, CMake's cache can't tell if files have been added or
@@ -165,6 +180,7 @@ macro(CSaru_Lib_AddLibrary)
 	# TODO : CHRIS : Use RELATIVE flag (and give abs path to .).
 	file(GLOB_RECURSE src_files src/*.cpp src/*.cxx src/*.c src/*.h src/*.hpp src/*.hxx)
 	file(GLOB_RECURSE header_files include/*.h include/*.hpp include/*.hxx)
+
 	# Deliberately not specifying STATIC or SHARED so BUILD_SHARED_LIBS can be
 	#	used to specify one or the other.
 	add_library(${PROJECT_NAME}
@@ -200,8 +216,15 @@ endmacro()
 #	the proper places for a CSaruEnviron src project.
 #
 macro(CSaru_Lib_Install)
-	file(GLOB_RECURSE exported_header_files include/*.h include/*.hpp include/*.hxx)
-	install(FILES ${exported_header_files} DESTINATION .)
+	# Note the importance of the trailing '/' on DIRECTORY's param.
+	#	Otherwise an 'include' directory would be created in the destination.
+	#	(Some people may prefer that.)
+	install(DIRECTORY include/ DESTINATION .
+		PATTERN *~    EXCLUDE # Ignore vim files.
+		PATTERN *.swp EXCLUDE # Ignore vim files.
+		PATTERN *.pyc EXCLUDE # Ignore python files.
+		)
+
 	install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
 		DESTINATION static
 		INCLUDES DESTINATION .
@@ -209,8 +232,8 @@ macro(CSaru_Lib_Install)
 
 	#install(EXPORT ${PROJECT_NAME}-targets DESTINATION .)
 
-	# We may or may not have Config.cmake files in the repo, but CSaru_Lib() will
-	#	make some for us if we don't.
+	# We may or may not have Config.cmake files in the repo, but CSaru_Lib() would
+	#	have made some for us if we didn't.
 	install(FILES
 		"${PROJECT_NAME}Config.cmake"
 		"${PROJECT_NAME}ConfigVersion.cmake"
