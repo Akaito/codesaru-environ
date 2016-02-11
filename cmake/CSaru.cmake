@@ -150,7 +150,7 @@ macro(CSaru_Lib_InstallPrefix)
 	#	platform/architecture combination.
 	#string(REPLACE "/src/" "/pkg/" CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}")
 
-	set(CMAKE_INSTALL_PREFIX "$ENV{CSaruDir}/pkg/${PROJECT_NAME}")
+	set(CMAKE_INSTALL_PREFIX "$ENV{CSaruDir}/pkg/${PROJECT_NAME}.${PROJECT_VERSION}")
 
 	# Some day in the future, install like this instead:
 	#	Actual path: pkg/github.com/username/reponame/v3.2
@@ -330,21 +330,23 @@ macro(CSaru_Depends target_project)
 	#		without doing it in the CSaru_Depends() way.
 
 	# Rem: "${${target_project}_DIR}" has the "-NOTFOUND"-suffixed string after the above call finds nothing.
-	# Rem: And dont' forget `cmake --build . --target install`.
+	# Rem: And don't forget `cmake --build . --target install`.
 	#message(FATAL_ERROR "_DIR -- [${${target_project}_DIR}] -- ${unique_project_name} -- (${target_project})\nCMAKE_PREFIX: ${CMAKE_PREFIX_PATH}")
 
 	###
 	# Try Install
-	set(target_src_dir "$ENV{CSaruDir}/src/${target_project}")
-	if (EXISTS "${target_src_dir}")
-		message(STATUS "Missing pkg for dependency, but src exists.  Attempting to cmake-build install target.")
-		# Try to install so the find_package call after this macro might succeed.
-		#message(FATAL_ERROR "cmd test -- [${CMAKE_COMMAND}]" "--build \"${target_src_dir}\" --target install")
-		execute_process(COMMAND ${CMAKE_COMMAND} " --build \"${target_src_dir}\" --target install"
-			RESULT_VARIABLE build_result
-			)
-		if (NOT build_result)
-			message(FATAL_ERROR "Failed to cmake --build git-cloned project via CSaru_Depends().  \"${target_project}\".")
+	if (NOT ${target_project}_DIR)
+		set(target_src_dir "$ENV{CSaruDir}/src/${target_project}")
+		if (EXISTS "${target_src_dir}")
+			message(STATUS "Missing pkg for dependency, but src exists.  Attempting to cmake-build install target.")
+			# Try to install so the find_package call after this macro might succeed.
+			#message(FATAL_ERROR "cmd test -- [${CMAKE_COMMAND}]" "--build \"${target_src_dir}\" --target install")
+			execute_process(COMMAND ${CMAKE_COMMAND} " --build \"${target_src_dir}\" --target install"
+				RESULT_VARIABLE build_result
+				)
+			if (NOT build_result)
+				message(FATAL_ERROR "Failed to cmake --build git-cloned project via CSaru_Depends().  \"${target_project}\".")
+			endif()
 		endif()
 	endif()
 	###
