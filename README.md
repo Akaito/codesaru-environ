@@ -49,25 +49,27 @@ CSaruEnv TODO General
 Target Structure
 ================
 
-Env
-	bin
-		csaru-core-cpp.exe   ==> csaru-core-cpp.2.exe
-		csaru-core-cpp.2.exe ==> csaru-core-cpp.2.1.exe
-		csaru-core-cpp.2.1.exe
-	pkg
-		csaru-core-cpp   ==> csaru-core-cpp.2
-		csaru-core-cpp.2 ==> csaru-core-cpp.2.1
-		csaru-core-cpp.2.1
-			cmake
-				csaru-core-cppConfig.cmake
-				csaru-core-cppConfigVersion.cmake
-			dynamic
-			static
-				libcsaru-core-cpp.a
-			*.h
-	src
-		github.com
-			akaito
-				csaru-core-cpp
-				csaru-container-cpp
-
+    CSaruDir
+        bin
+            csaru-core-cpp-test   ==> csaru-core-cpp-test.3
+            csaru-core-cpp-test.2 ==> csaru-core-cpp-test.2.1
+            csaru-core-cpp-test.2.0
+            csaru-core-cpp-test.2.1
+            csaru-core-cpp-test.3 ==> csaru-core-cpp-test.3.0
+            csaru-core-cpp-test.3.0
+        pkg
+            csaru-core-cpp   ==> csaru-core-cpp.2
+            csaru-core-cpp.2 ==> csaru-core-cpp.2.1
+            csaru-core-cpp.2.1
+                cmake
+                    csaru-core-cppConfig.cmake
+                    csaru-core-cppConfigVersion.cmake
+                dynamic
+                static
+                    libcsaru-core-cpp.a
+                *.h
+        src
+            github.com
+                akaito
+                    csaru-core-cpp
+                    csaru-core-cpp-test
