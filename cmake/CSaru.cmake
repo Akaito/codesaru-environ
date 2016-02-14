@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Christopher Higgins Barrett
+# Copyright (c) 2016 Christopher Higgins Barrett
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -65,11 +65,11 @@ endmacro()
 #	handle some things, copy-paste all the calls below and change them up
 #	a little (or exclude some).
 #
-macro(CSaru_Lib version)
+macro(CSaru_Lib version src_files header_files)
 	CSaru_Lib_Project(${version})
 	CSaru_Lib_Config()
 	CSaru_Lib_InstallPrefix()
-	CSaru_Lib_AddLibrary()
+	CSaru_Lib_AddLibrary("${src_files}" "${header_files}")
 	CSaru_Lib_Install()
 endmacro()
 
@@ -169,17 +169,12 @@ endmacro()
 #	When globbing, CMake's cache can't tell if files have been added or
 #	removed.
 #
-macro(CSaru_Lib_AddLibrary)
+macro(CSaru_Lib_AddLibrary src_files header_files)
 	# Create the static library.  Tell it *every* file involved!
 	# CMake docs recommend against globbing (ie. src/*cpp) so changes are
 	#	detectable.
 	# If you're *realy* lazy and want to glob anyway,
 	#	just prepare to clean and "cmake ." a lot.
-	#	(Hint: I'm feeling really lazy and want to just let this code run
-	#	everywhere without changing it.)
-	# TODO : CHRIS : Use RELATIVE flag (and give abs path to .).
-	file(GLOB_RECURSE src_files src/*.cpp src/*.cxx src/*.c src/*.h src/*.hpp src/*.hxx)
-	file(GLOB_RECURSE header_files include/*.h include/*.hpp include/*.hxx)
 
 	# Deliberately not specifying STATIC or SHARED so BUILD_SHARED_LIBS can be
 	#	used to specify one or the other.
@@ -193,19 +188,12 @@ macro(CSaru_Lib_AddLibrary)
 	#include_directories(include)
 	#include_directories("$ENV{CSaruDir}/pkg")
 
-	# Believe the below was something I used for a while to add the 'include'
-	#	directory to the include path for all 'src' files automatically.
-	#	Ended up liking the manual use of "../include/" more.
-	#target_include_directories(LibA PUBLIC
-		#$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> # Don't need this after-all.
-		#$<INSTALL_INTERFACE:pkg/${PROJECT_NAME}/include>
-		#)
-
 	# Tell Visual Studio and other IDEs how to organize the files for the user.
 	#	A fancier thing to do might be to iterate over each file we're adding,
 	#	and add subgroups ("main\\sub", like that) so the organization in the
 	#	IDE is _really_ nice.
-	source_group(src FILES ${src_files} ${src_header_files})
+	#source_group(src FILES ${src_files} ${src_header_files})
+	source_group(src FILES ${src_files})
 	source_group(include FILES ${header_files})
 endmacro()
 
@@ -230,6 +218,7 @@ macro(CSaru_Lib_Install)
 		INCLUDES DESTINATION .
 		)
 
+	# TODO
 	#install(EXPORT ${PROJECT_NAME}-targets DESTINATION .)
 
 	# We may or may not have Config.cmake files in the repo, but CSaru_Lib() would
