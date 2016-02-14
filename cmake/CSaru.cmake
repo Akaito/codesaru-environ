@@ -234,7 +234,7 @@ endmacro()
 # ---------- CSaru_Bin_Console macro ----------
 #
 #
-macro(CSaru_Bin_Console version)
+macro(CSaru_Bin_Console version src_files)
 	# Automatically use the path after 'src/' as the project name.
 	#	Feel free to delete these next two lines and manually set this instead.
 	#	Just note that CSaru_Depends() expects to be given packages like
@@ -253,13 +253,13 @@ macro(CSaru_Bin_Console version)
 	# Put executables into the CSaruEnviron bin directory.
 	#	On DLL platforms (Windows), also put shared libraries (.dll) here.
 	#	On other platforms, shared libraries (.so) go in the LIBRARY directory instead.
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{CSaruDir}/bin/${project_name}")
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{CSaruDir}/bin/")
 
 
-	file(GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c src/*.cpp src/*.cxx src/*.h src/*.hpp src/*.hxx)
+	#file(GLOB_RECURSE src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c src/*.cpp src/*.cxx src/*.h src/*.hpp src/*.hxx)
 	# Recall that PROJECT_NAME is set by the project() call above.
 	add_executable(${PROJECT_NAME}
-		${src_files}
+		"${src_files}"
 		)
 endmacro()
 
