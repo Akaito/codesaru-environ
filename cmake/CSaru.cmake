@@ -327,7 +327,7 @@ macro(CSaru_Depends target_project)
 	if (NOT ${target_project}_DIR)
 		set(target_src_dir "$ENV{CSaruDir}/src/${target_project}")
 		if (EXISTS "${target_src_dir}")
-			message(STATUS "Missing pkg for dependency, but src exists.  Attempting to cmake-build install target.")
+			message(STATUS "Missing pkg for dependency \"${target_project}\", but src exists.  Attempting to cmake-build install target.")
 			# Try to install so the find_package call after this macro might succeed.
 			#message(FATAL_ERROR "cmd test -- [${CMAKE_COMMAND}]" "--build \"${target_src_dir}\" --target install")
 			execute_process(COMMAND ${CMAKE_COMMAND} " --build \"${target_src_dir}\" --target install"
