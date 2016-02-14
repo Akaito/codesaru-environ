@@ -22,8 +22,10 @@ make_upper_revision_link () {
 	# If there's a match, we want to create a coarser-versioned link.
 	if ! [ -z "${BASH_REMATCH[1]}" ]; then
 		# Unless there's already something with our desired name.
-		if [ ! -f "${BASH_REMATCH[1]}" ]; then
+		if [ ! -e "${BASH_REMATCH[1]}" ]; then
 			ln -s "${BASH_REMATCH[0]}" "${BASH_REMATCH[1]}"
+		elif [ ! -h "${BASH_REMATCH[1]}" ]; then
+			echo "\"${BASH_REMATCH[1]}\" desired as symlink, but exists and is not a symlink."
 		fi
 		# Continue up to a coarser version number.
 		make_upper_revision_link "${BASH_REMATCH[1]}"
