@@ -30,6 +30,9 @@
 #	the future when we *might* do something like that, instead of paying for
 #	it now.
 include_directories("${CMAKE_CURRENT_LIST_DIR}/../..")
+# TODO : Include a -targets CMake file to provide targets, to
+#        replace file globbing below?
+#include("${CMAKE_CURRENT_LIST_DIR}/../
 
 # This is similar to the include_directories above, except for linking
 #	to libraries.  This file provides a variable,
