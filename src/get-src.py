@@ -41,6 +41,7 @@ class Repo:
 			r.title = r.title[len('csaru-'):]
 		r.description = jsn['description']
 		r.clone_url = jsn['clone_url']
+		r.ssh_url = jsn['ssh_url']
 		return r
 
 	def __repr__(self):
@@ -81,7 +82,8 @@ def main():
 		repo = repos[int(user_choice) - 1]
 		user_choice = 0
 
-		subprocess.call(['git', 'clone', repo.clone_url, repo.title])
+		#subprocess.call(['git', 'clone', repo.clone_url, repo.title])
+		subprocess.call(['git', 'clone', repo.ssh_url, repo.title])
 
 if __name__ == "__main__":
 	prior_dir = os.getcwd()
