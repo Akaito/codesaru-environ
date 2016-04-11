@@ -34,7 +34,11 @@ class Repo:
 	def from_github_json(cls, jsn):
 		r = cls()
 		r.name = jsn['name']
-		r.title = r.name[len('codesaru-environ_src_'):]
+		r.title = r.name
+		if r.title.startswith('codesaru-environ_src_'):
+			r.title = r.title[len('codesaru-environ_src_'):]
+		elif r.title.startswith('csaru-'):
+			r.title = r.title[len('csaru-'):]
 		r.description = jsn['description']
 		r.clone_url = jsn['clone_url']
 		return r
@@ -49,7 +53,7 @@ def find_repos(jsn):
 		r = Repo.from_github_json(repo_jsn)
 		if r is None:
 			continue
-		if 'codesaru-environ_src_' not in r.name:
+		if not r.name.startswith('codesaru-environ_src_') and not r.name.startswith('csaru-'):
 			continue
 		repos.append(r)
 	return repos
