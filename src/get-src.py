@@ -83,7 +83,7 @@ def main():
 		user_choice = 0
 
 		#subprocess.call(['git', 'clone', repo.clone_url, repo.title])
-		subprocess.call(['git', 'clone', repo.ssh_url, repo.title])
+		subprocess.call(['git', 'clone', repo.ssh_url, repo.name])
 
 if __name__ == "__main__":
 	prior_dir = os.getcwd()
