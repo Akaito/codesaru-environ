@@ -99,6 +99,20 @@ macro(CSaru_Lib_Project version)
 	get_filename_component(project_name ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 	project(${project_name} VERSION ${version})
+
+	# Improve warning level.  This chunk was taken from
+	# http://stackoverflow.com/questions/2368811/how-to-set-warning-level-in-cmake
+	if(MSVC)
+		# Force to always compile with W4
+		if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+			string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+		else()
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+		endif()
+	elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+		# Update if necessary
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+	endif()
 endmacro()
 
 
