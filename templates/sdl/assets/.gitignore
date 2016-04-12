@@ -1,0 +1,28 @@
+# Vim
+*~
+*.swp
+*.vim
+
+# Visual Studio
+Debug
+Release
+*vcxproj*
+*.sln
+*.sdf
+
+# nix
+Makefile
+*.a
+
+# CMake
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+
+# Python
+__pycache__
+
+# This particular project
+working-dir/out_*
+
