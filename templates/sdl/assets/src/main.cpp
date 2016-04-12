@@ -68,7 +68,7 @@ static bool init () {
 	}
 
 	// Set color used when clearing.
-	SDL_SetRenderDrawColor(g_renderer, 0x00, 0x00, 0x00, 0xFF);
+	SDL_SetRenderDrawColor(g_renderer, 0xFF, 0x00, 0xFF, 0xFF);
 
 	return true;
 
@@ -119,7 +119,7 @@ int main (int argc, const char * argv[]) {
 		} // end while SDL_PollEvent
 
 		// sdl render
-		SDL_SetRenderDrawColor(g_renderer, 0x00, 0x00, 0x00, 0xFF);
+		SDL_SetRenderDrawColor(g_renderer, 0xFF, 0x00, 0xFF, 0xFF);
 		SDL_RenderClear(g_renderer);
 
 		SDL_RenderPresent(g_renderer);
