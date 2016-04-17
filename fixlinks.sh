@@ -1,6 +1,16 @@
 #!/bin/bash
 
 # Update symbolic links in the pkg directory to all be pointing at the latest versions.
+#
+# ie.
+#	foolib.0.9.5
+#	foolib.0.9.6
+#	foolib.1.0.4
+#	foolib.0.9 -> foolib.0.9.6
+#	foolib.0   -> foolib.0.9.6
+#	foolib.1.0 -> foolib.1.0.4
+#	foolib.1   -> foolib.1.0.4
+#	foolib     -> foolib.1.0.4
 
 # Delete all symlinks in pkg that point to within pkg.
 rm_intra_pkg_links () {
