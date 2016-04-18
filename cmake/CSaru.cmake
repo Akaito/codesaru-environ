@@ -58,6 +58,16 @@ macro(CSaru_ProjectNamify_Path absolute_project_src_path outvar)
 endmacro()
 
 
+# ---------- CSaru_UseVendor macro ----------
+#
+# Add a vendor package to your project's compiler's paths to be searched
+#	for #includes.
+#
+macro(CSaru_UseVendor vendor_rel_path)
+	include_directories("$ENV{CSaruDir}/pkg/vendor/${vendor_rel_path}/")
+endmacro()
+
+
 # ---------- CSaru_Lib macro ----------
 #
 # If you just want CSaru to handle everything, call this.
