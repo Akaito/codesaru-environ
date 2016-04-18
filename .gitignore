@@ -1,8 +1,10 @@
 # Vim
 *~
 *.swp
+*.swo
 *.vim
 
+# CSaruEnv
 bin
 pkg
 project/*
