@@ -10,3 +10,5 @@ if [[ $PATH != *"${CSaruDir}/bin"* ]]; then
 	export PATH="${PATH}:${CSaruDir}/bin"
 fi
 
+. use-clang.sh
+
