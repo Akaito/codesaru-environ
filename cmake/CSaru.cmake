@@ -123,6 +123,13 @@ macro(CSaru_Lib_Project version)
 		# Update if necessary
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 	endif()
+
+	# Up the C++ standard version being used
+	if(MSVC)
+		message(FATAL_ERROR "TODO")
+	elseif()
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	endif()
 endmacro()
 
 
