@@ -42,8 +42,11 @@ Stretch Goals
 CSaruEnv TODO General
 =====================
 
-1. Better error messages for when CSaruEnv environment variable isn't set.
-   Currently just errors on "/cmake/CSaru.cmake" not being found by the include().
+1. Fix fixlinks.sh
+    With links chip8 -> chip8.0 -> chip8.0.1 and directories chip8.0.1 and chip8.0.3,
+	chip8.0 isn't getting updated to point at chip8.0.3; instead being left at chip8.0.1
+2. Better error messages for when CSaruEnv environment variable isn't set.
+    Currently just errors on "/cmake/CSaru.cmake" not being found by the include().
 
 
 Target Structure
