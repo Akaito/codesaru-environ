@@ -36,8 +36,11 @@ SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
 
+LDLIBS += $(addprefix -l ,$(CSARU_DEPENDS))
+LDFLAGS += $(addprefix -L ../../pkg/,$(CSARU_DEPENDS))
+
 # All directories in ./src, etc.
-INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_DIRS := $(shell find $(SRC_DIRS) -type d) $(CSARU_PKG_DIR)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 # -MMD: -MD, without mentioning system header files.
@@ -47,7 +50,7 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CXXFLAGS := $(INC_FLAGS) -MMD -MP $(CXXFLAGS)
 
 
-.PHONY: clean build
+.PHONY: clean build install
 
 build: $(TARGET)
 
@@ -57,10 +60,12 @@ $(TARGET): $(OBJS)
 	@# s: Add or update archive's index.
 	$(AR) rcs $@ $^
 
-# TODO : fixlinks.sh (or equivalent) after an install.
+# TODO : Something more proper than running fixlinks.sh like this?
 install: $(TARGET)
+	mkdir --parents $(INSTALL_DIR)
 	cp $(TARGET) $(INSTALL_DIR)/
-	cp -r src/exported/* $(INSTALL_DIR)/
+	-cp -r src/exported/* $(INSTALL_DIR)/
+	../../fixlinks.sh
 
 clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)

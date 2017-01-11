@@ -50,15 +50,18 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CXXFLAGS := $(INC_FLAGS) -MMD -MP $(CXXFLAGS)
 
 
-.PHONY: clean build
+.PHONY: clean build install
 
 build: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CXX) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBS) $(LDLIBS)
 
+# TODO : Something more proper than running fixlinks.sh like this?
 install: $(TARGET)
+	mkdir --parents $(INSTALL_DIR)
 	cp $(TARGET) $(CSARU_BIN_DIR)/
+	../../fixlinks.sh
 
 clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)
