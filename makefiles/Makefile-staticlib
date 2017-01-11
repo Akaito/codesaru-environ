@@ -24,7 +24,11 @@ CXX := clang++
 # notdir gives the last not-directory part (which happens to be a directory
 # here).
 PROJNAME = $(notdir $(shell pwd))
+PROJ_VERSION = 0.3
 TARGET ?= lib$(PROJNAME).a
+
+CSARU_PKG_DIR = ../../pkg
+INSTALL_DIR := $(CSARU_PKG_DIR)/$(PROJNAME).$(PROJ_VERSION)
 
 SRC_DIRS ?= ./src
 
@@ -43,7 +47,9 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 CXXFLAGS := $(INC_FLAGS) -MMD -MP $(CXXFLAGS)
 
 
-.PHONY: clean test
+.PHONY: clean build
+
+build: $(TARGET)
 
 $(TARGET): $(OBJS)
 	@# Use the following for making an executable.
@@ -54,11 +60,10 @@ $(TARGET): $(OBJS)
 	@# s: Add or update archive's index.
 	$(AR) rcs $@ $^
 
-test:
-	@echo $(CXXFLAGS)
-	@echo $(SRCS)
-	@echo $(OBJS)
-	@echo $(DEPS)
+# TODO : fixlinks.sh (or equivalent) after an install.
+install: $(TARGET) $(SRCS)
+	cp $(TARGET) $(INSTALL_DIR)/
+	cp -r src/exported/* $(INSTALL_DIR)/
 
 clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)
