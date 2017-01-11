@@ -24,11 +24,11 @@ CXX := clang++
 # notdir gives the last not-directory part (which happens to be a directory
 # here).
 PROJNAME = $(notdir $(shell pwd))
-PROJ_VERSION = 0.3
-TARGET ?= lib$(PROJNAME).a
+TARGET ?= $(PROJNAME)
 
 CSARU_PKG_DIR = ../../pkg
-INSTALL_DIR := $(CSARU_PKG_DIR)/$(PROJNAME).$(PROJ_VERSION)
+CSARU_BIN_DIR = ../../bin
+INSTALL_DIR := $(CSARU_BIN_DIR)
 
 SRC_DIRS ?= ./src
 
@@ -36,8 +36,11 @@ SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
 
+LDLIBS += $(addprefix -l ,$(CSARU_DEPENDS))
+LDFLAGS += $(addprefix -L ../../pkg/,$(CSARU_DEPENDS))
+
 # All directories in ./src, etc.
-INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_DIRS := $(shell find $(SRC_DIRS) -type d) $(CSARU_PKG_DIR)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 # -MMD: -MD, without mentioning system header files.
@@ -52,15 +55,10 @@ CXXFLAGS := $(INC_FLAGS) -MMD -MP $(CXXFLAGS)
 build: $(TARGET)
 
 $(TARGET): $(OBJS)
-	@# r: Insert members with replacement.
-	@# c: Don't warn if the archive didn't already exist.
-	@# s: Add or update archive's index.
-	$(AR) rcs $@ $^
+	$(CXX) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBS) $(LDLIBS)
 
-# TODO : fixlinks.sh (or equivalent) after an install.
 install: $(TARGET)
-	cp $(TARGET) $(INSTALL_DIR)/
-	cp -r src/exported/* $(INSTALL_DIR)/
+	cp $(TARGET) $(CSARU_BIN_DIR)/
 
 clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)
