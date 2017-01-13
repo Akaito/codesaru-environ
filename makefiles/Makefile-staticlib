@@ -24,7 +24,7 @@ CXX := clang++
 # notdir gives the last not-directory part (which happens to be a directory
 # here).
 PROJNAME = $(notdir $(shell pwd))
-PROJ_VERSION = 0.3
+PROJ_VERSION ?= 0.1
 TARGET ?= lib$(PROJNAME).a
 
 CSARU_PKG_DIR = ../../pkg
