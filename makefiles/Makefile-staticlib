@@ -11,9 +11,9 @@
 # "A Super-Simple Makefile for Medium-Sized C/C++ Projects"
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
-WARNING_FLAGS := -Wall -Wextra -Wpedantic
-CFLAGS := $(WARNING_FLAGS) -Wansi
-CXXFLAGS := -std=c++11 $(WARNING_FLAGS)
+WARNING_FLAGS += -Wall -Wextra -Wpedantic
+CFLAGS += $(WARNING_FLAGS) -Wansi
+CXXFLAGS += -std=c++11 $(WARNING_FLAGS)
 CC := clang
 CXX := clang++
 
@@ -41,13 +41,13 @@ LDFLAGS += $(addprefix -L ../../pkg/,$(CSARU_DEPENDS))
 
 # All directories in ./src, etc.
 INC_DIRS := $(shell find $(SRC_DIRS) -type d) $(CSARU_PKG_DIR)
-INC_FLAGS := $(addprefix -I,$(INC_DIRS))
+INC_FLAGS += $(addprefix -I,$(INC_DIRS))
 
 # -MMD: -MD, without mentioning system header files.
 # -MD: Write out Make-style dependencies for each file.
 # -MP: Also write a phony rule for each header, so if a header is removed
 #  without updating the file Make is using, it won't error.
-CXXFLAGS := $(INC_FLAGS) -MMD -MP $(CXXFLAGS)
+CXXFLAGS += $(INC_FLAGS) -MMD -MP
 
 
 .PHONY: clean build install
