@@ -11,6 +11,8 @@
 # "A Super-Simple Makefile for Medium-Sized C/C++ Projects"
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
+include ../../makefiles/common-stuff.mk
+
 WARNING_FLAGS += -Wall -Wextra -Wpedantic
 CFLAGS += $(WARNING_FLAGS) -Wansi
 CXXFLAGS += -std=c++11 $(WARNING_FLAGS)
