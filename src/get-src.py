@@ -72,9 +72,11 @@ def main():
 		repos.extend(find_repos(repos_jsn))
 
 	# present list of codesaru-environ/src compatible repos
+	longest_title = 0
 	for i in range(len(repos)):
-		print(i + 1, '--', repos[i].title)
-		print('   ', repos[i].description)
+            longest_title = max(longest_title, len(repos[i].title))
+	for i in range(len(repos)):
+	    print("{:3} -- {:<{}} {} {}".format(i+1, repos[i].title, longest_title, '--', repos[i].description))
 
 	user_choice = 0
 	while True:
