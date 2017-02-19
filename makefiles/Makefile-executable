@@ -11,8 +11,6 @@
 # "A Super-Simple Makefile for Medium-Sized C/C++ Projects"
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
-include ../../makefiles/common-stuff.mk
-
 WARNING_FLAGS += -Wall -Wextra -Wpedantic
 CFLAGS += $(WARNING_FLAGS) -Wansi
 CXXFLAGS += -std=c++11 $(WARNING_FLAGS)
@@ -52,9 +50,7 @@ INC_FLAGS += $(addprefix -I,$(INC_DIRS))
 CXXFLAGS += $(INC_FLAGS) -MMD -MP
 
 
-.PHONY: clean build install
-
-build: $(TARGET)
+.PHONY: clean install tags
 
 $(TARGET): $(OBJS)
 	$(CXX) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBS) $(LDLIBS)
@@ -67,6 +63,13 @@ install: $(TARGET)
 
 clean:
 	$(RM) $(TARGET) $(OBJS) $(DEPS)
+
+# TODO : Make ctags file only rebuild when srcs are newer.
+tags:
+	@# tag-relative: Make output relative to ctags file, not current directory
+	@#               Because I run make from repo base dir, and vim from src dir.
+	ctags --recurse --tag-relative -f $(SRC_DIRS)/tags
+
 
 -include $(DEPS)
 
