@@ -1,10 +1,17 @@
 *~
 *.swp
+Session.vim
 __pycache__
-*.vim
 
-build
+docs
 
 Debug
 Release
 *vcxproj*.user
+
+*.d
+*.o
+*.a
+
+src/tags
+
