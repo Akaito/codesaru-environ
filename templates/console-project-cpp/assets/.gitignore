@@ -1,7 +1,23 @@
+# Vim
 *~
 *.swp
-__pycache__
+*.swo
+*.vim
+src/tags
 
+# Visual Studio
 Debug
 Release
-*vcxproj*.user
+*vcxproj*
+*.sln
+*.sdf
+
+# nix
+*.d
+*.o
+*.a
+csaru-xapp-cpp-test
+
+# Python
+__pycache__
+

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """
 Copyright (c) 2016 Christopher Higgins Barrett
 

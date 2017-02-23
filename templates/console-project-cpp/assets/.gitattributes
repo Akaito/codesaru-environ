@@ -1,0 +1,7 @@
+# PhysicsFS is being used to read json files, and it doesn't support
+# "translation"/text mode when reading.  We don't want Windows users
+# checking out those .json files with \r\n endings, since that will
+# break reading those files there.
+# This forces *nix-style \n-only endings on other systems.
+*.json text eol=lf
+
