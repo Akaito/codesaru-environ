@@ -12,7 +12,7 @@
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
 WARNING_FLAGS += -Wall -Wextra -Wpedantic
-CFLAGS += $(WARNING_FLAGS) -Wansi
+CFLAGS += $(WARNING_FLAGS)
 CXXFLAGS += -std=c++11 $(WARNING_FLAGS)
 CC := clang
 CXX := clang++
