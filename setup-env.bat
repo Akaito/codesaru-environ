@@ -15,3 +15,6 @@ if errorlevel 1 (
 	echo. CSaru bin dir *already* in path.
 )
 
+SET "CC=E:/Program Files/LLVM/bin/clang"
+SET "CXX=E:/Program Files/LLVM/bin/clang++"
+
